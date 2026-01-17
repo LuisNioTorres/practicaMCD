@@ -1,21 +1,23 @@
 
 package src;
 
+// ===============================
+// Nodo.java (ACTUALIZADA)
+// ===============================
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class Nodo extends UnicastRemoteObject implements NodoRemoto {
 
     private static final long serialVersionUID = 1L;
 
-    // ===== CONFIGURACIÓN =====
     private static final int[] NODOS = { 1, 2, 3, 4 };
     private static final int BASE_PORT = 1099;
 
-    // ===== ESTADO LOCAL =====
     private int idNodo;
     private ContadorCompartido contadorLocal;
 
@@ -24,7 +26,6 @@ public class Nodo extends UnicastRemoteObject implements NodoRemoto {
         this.contadorLocal = new ContadorCompartido(0);
     }
 
-    // ===== MÉTODOS REMOTOS =====
     @Override
     public synchronized ContadorCompartido getContador() throws RemoteException {
         return contadorLocal;
@@ -33,12 +34,9 @@ public class Nodo extends UnicastRemoteObject implements NodoRemoto {
     @Override
     public synchronized void recibirUpdate(ContadorCompartido contador) throws RemoteException {
         this.contadorLocal = contador;
-        System.out.println(
-                "\n[UPDATE] Objeto ContadorCompartido recibido. Nuevo valor: "
-                        + contadorLocal.getValor());
+        mostrarEstadoObjeto("[UPDATE] Objeto ContadorCompartido recibido : { ", contadorLocal);
     }
 
-    // ===== RELEASE (WRITE-UPDATE DE OBJETO) =====
     private void hacerRelease() {
         for (int nodo : NODOS) {
             if (nodo == idNodo)
@@ -52,24 +50,32 @@ public class Nodo extends UnicastRemoteObject implements NodoRemoto {
                 System.out.println("No se pudo contactar al Nodo " + nodo);
             }
         }
-        System.out.println("RELEASE completado. Cambios propagados.");
+        mostrarEstadoObjeto("RELEASE completado. Objeto propagado", contadorLocal);
     }
 
-    // ===== CONSULTAR OTRO NODO =====
     private void consultarOtroNodo(int nodoDestino) {
         try {
             String url = "rmi://localhost:" + (BASE_PORT + nodoDestino) + "/Nodo" + nodoDestino;
             NodoRemoto remoto = (NodoRemoto) Naming.lookup(url);
             ContadorCompartido contador = remoto.getContador();
-            System.out.println(
-                    "Valor del contador en Nodo " + nodoDestino + " es: "
-                            + contador.getValor());
+            System.out.println("Objeto consultado del nodo: " + nodoDestino);
+            recibirUpdate(contador);
         } catch (Exception e) {
             System.out.println("No se pudo consultar al Nodo " + nodoDestino);
         }
     }
 
-    // ===== MAIN =====
+    private void mostrarEstadoObjeto(String titulo, ContadorCompartido c) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+        System.out.println("\n" + titulo);
+        System.out.println("Valor: " + c.getValor());
+        System.out.println("Creado por Nodo: " + c.getIdCreador());
+        System.out.println("Versión: " + c.getVersion());
+        System.out.println(
+                "Timestamp: " + (c.getTimestamp() == null ? "N/A" : c.getTimestamp().format(fmt)) + " \n " + "}");
+    }
+
     public static void main(String[] args) {
         if (args.length != 1) {
             System.out.println("Uso: java Nodo <idNodo>");
@@ -102,13 +108,14 @@ public class Nodo extends UnicastRemoteObject implements NodoRemoto {
                     case 1:
                         System.out.print("Nuevo valor del contador: ");
                         int nuevoValor = Integer.parseInt(sc.nextLine());
-                        nodo.contadorLocal.setValor(nuevoValor);
 
-                        System.out.println(
-                                "Contador actualizado localmente, AUN NO se ha hecho RELEASE");
-                        System.out.println(
-                                "Presiona ENTER para hacer RELEASE (simulación RC)");
+                        // actualización LOCAL del OBJETO
+                        nodo.contadorLocal.actualizar(nuevoValor, idNodo);
+
+                        System.out.println("Contador actualizado localmente, AUN NO se ha hecho RELEASE");
+                        System.out.println("Presiona ENTER para hacer RELEASE (simulación RC)");
                         sc.nextLine();
+
                         nodo.hacerRelease();
                         break;
 
