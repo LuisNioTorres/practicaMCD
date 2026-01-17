@@ -1,3 +1,5 @@
+package carpetaEjemplo;
+
 import java.util.Scanner;
 
 // Clase que representa los datos en la Memoria Compartida Distribuida

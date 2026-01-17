@@ -127,6 +127,7 @@ public class Nodo extends UnicastRemoteObject implements NodoRemoto {
 
                     case 3:
                         System.exit(0);
+                        sc.close();
                         break;
 
                     default:
