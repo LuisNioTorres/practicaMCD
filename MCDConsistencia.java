@@ -1,6 +1,15 @@
 import java.util.Scanner;
 
 // Clase que representa los datos en la Memoria Compartida Distribuida
+/*
+Se instancian NODOS en cada TERMINAL.
+Cada NODO puede actualizar el CONTADOR.
+Despues de un tiempo X los nodos restantes deben actualizar el valor a ese CONTADOR.
+PRUEBA ADICIONAL:
+En el momento que NODOA actualiza el contador , y otro NODOB intenta leer el contador de OTRO NODOC
+¿Seguira viendo el CONTADOR ANTIGUO o el ACTUALIZADO?
+*/
+
 class DatosMCD {
     int contador;
     String ultimoEditor;
@@ -65,11 +74,11 @@ public class MCDConsistencia {
 
         // Crear nodos
         Nodo[] nodos = {
-            new Nodo("Nodo-1"),
-            new Nodo("Nodo-2"),
-            new Nodo("Nodo-3"),
-            new Nodo("Nodo-4"),
-            new Nodo("Nodo-5")
+                new Nodo("Nodo-1"),
+                new Nodo("Nodo-2"),
+                new Nodo("Nodo-3"),
+                new Nodo("Nodo-4"),
+                new Nodo("Nodo-5")
         };
 
         boolean salir = false;
